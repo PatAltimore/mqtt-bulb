@@ -27,37 +27,54 @@ public class MqttBulb {
             System.out.println("Client ID: " + CLIENT_ID);
             System.out.println("Topic: " + TOPIC);
 
-            // Display the light bulb.
-            JButton toggleButton = new JButton(toggleLightBulb("off"));
+            if (GraphicsEnvironment.isHeadless()) { // Console mode
 
-            SwingUtilities.invokeLater(() -> {
-                JFrame frame = new JFrame("MQTT light bulb");
-                frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-                frame.setSize(300, 300);
-    
-                // Create a button with the light bulb icon
+                System.out.println("No display available. Running in console mode.");
 
-                toggleButton.addActionListener(e -> toggleButton.setIcon(toggleLightBulb("toggle"))); // Toggle the light bulb on button click
-    
-                frame.add(toggleButton, BorderLayout.CENTER);
-                frame.setVisible(true);
-            });
-
-            // Subscribe to a topic
-
-            System.out.println("\nSubscribing to topic " + TOPIC + ".");
-            client.subscribe(TOPIC, (tpc, msg) -> {
-                String message = new String(msg.getPayload());
-                // Display the light bulb icon based on the received message
-                SwingUtilities.invokeLater(() -> {
+                // Subscribe to a topic
+                System.out.println("\nSubscribing to topic " + TOPIC + ".");
+                
+                client.subscribe(TOPIC, (tpc, msg) -> {
+                    String message = new String(msg.getPayload());
                     System.out.println("Light " + message);
-                    toggleButton.setIcon(toggleLightBulb(message));
-                });
-            });
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+                }); 
+
+            } else { // GUI code
+
+                System.out.println("Display available. Running in GUI mode.");
+
+                // Display the light bulb.
+                JButton toggleButton = new JButton(toggleLightBulb("off"));
+
+                SwingUtilities.invokeLater(() -> {
+                    JFrame frame = new JFrame("MQTT light bulb");
+                    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+                    frame.setSize(300, 300);
         
+                    // Create a button with the light bulb icon
+
+                    toggleButton.addActionListener(e -> toggleButton.setIcon(toggleLightBulb("toggle"))); // Toggle the light bulb on button click
+        
+                    frame.add(toggleButton, BorderLayout.CENTER);
+                    frame.setVisible(true);
+                });
+
+                // Subscribe to a topic
+
+                System.out.println("\nSubscribing to topic " + TOPIC + ".");
+                client.subscribe(TOPIC, (tpc, msg) -> {
+                    String message = new String(msg.getPayload());
+
+                    // Display the light bulb icon based on the received message
+                    SwingUtilities.invokeLater(() -> {
+                        toggleButton.setIcon(toggleLightBulb(message));
+                    });
+                }); 
+            }
+
+        } catch (Exception e) {
+                e.printStackTrace();
+        }
     }
 
     private static ImageIcon toggleLightBulb(String message) {
@@ -73,6 +90,7 @@ public class MqttBulb {
         String iconPath = isLit ? "resources/lit-bulb.png" : "resources/unlit-bulb.png";
         URL url = MqttBulb.class.getResource(iconPath);
 
+        System.out.println("Light " + message);
         return new ImageIcon(url);
     }
 
