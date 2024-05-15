@@ -5,6 +5,7 @@ import org.eclipse.paho.client.mqttv3.IMqttClient;
 import javax.swing.*;
 import java.awt.*;
 import java.util.UUID;
+import java.net.URL;
 
 public class MqttBulb {
 
@@ -18,22 +19,17 @@ public class MqttBulb {
 
         try {
             IMqttClient client = new MqttClient(BROKER_ENDPOINT, CLIENT_ID);
-            try {
-                // Connect to the MQTT broker
-                client.connect();
-                System.out.println("\nConnected to MQTT broker!");
-                System.out.println("Broker endpoint: " + BROKER_ENDPOINT);
-                System.out.println("Client ID: " + CLIENT_ID);
-                System.out.println("Topic: " + TOPIC);
 
-
-            } finally {
-                client.disconnect(); // Close the client connection
-            }
+            // Connect to the MQTT broker
+            client.connect();
+            System.out.println("\nConnected to MQTT broker!");
+            System.out.println("Broker endpoint: " + BROKER_ENDPOINT);
+            System.out.println("Client ID: " + CLIENT_ID);
+            System.out.println("Topic: " + TOPIC);
 
             // Display the light bulb.
             JButton toggleButton = new JButton(toggleLightBulb("off"));
-            
+
             SwingUtilities.invokeLater(() -> {
                 JFrame frame = new JFrame("MQTT light bulb");
                 frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -54,6 +50,7 @@ public class MqttBulb {
                 String message = new String(msg.getPayload());
                 // Display the light bulb icon based on the received message
                 SwingUtilities.invokeLater(() -> {
+                    System.out.println("Light " + message);
                     toggleButton.setIcon(toggleLightBulb(message));
                 });
             });
@@ -74,7 +71,9 @@ public class MqttBulb {
             isLit = false;
         }
         String iconPath = isLit ? "resources/lit-bulb.png" : "resources/unlit-bulb.png";
-        return new ImageIcon(iconPath);
+        URL url = MqttBulb.class.getResource(iconPath);
+
+        return new ImageIcon(url);
     }
 
 }
