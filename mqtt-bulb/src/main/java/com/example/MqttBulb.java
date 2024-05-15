@@ -10,18 +10,16 @@ import java.net.URL;
 
 public class MqttBulb {
 
-    private static final String BROKER_ENDPOINT = "tcp://x.x.x.x:1883";
-    private static final String CLIENT_ID = "mqtt-java-bulb" + UUID.randomUUID();
+    private static final String BROKER_ENDPOINT = "tcp://20.150.201.236:1883";
+    private static final String CLIENT_ID = "mqtt-java-bulb-" + UUID.randomUUID();
     private static final String TOPIC = "light";
 
     private static boolean isLit = false; // Initial state: unlit
 
     public static void main(String[] args) {
 
-        IMqttClient client = null;
-        
         try {
-            client = new MqttClient(BROKER_ENDPOINT, CLIENT_ID);
+            IMqttClient client = new MqttClient(BROKER_ENDPOINT, CLIENT_ID);
 
             // Connect to the MQTT broker
             client.connect();
@@ -72,21 +70,25 @@ public class MqttBulb {
                     SwingUtilities.invokeLater(() -> {
                         toggleButton.setIcon(toggleLightBulb(message));
                     });
-                }); 
+                });
+
+                // Add a shutdown hook to close the client connection when the JVM shuts down
+                System.out.println("\nAdding shutdown hook to close the MQTT client connection.");
+                Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                    if (client != null) {
+                        try {
+                            client.disconnect();
+                            client.close();
+                        } catch (MqttException e) {
+                            System.out.println("Error while disconnecting MQTT client.");
+                            e.printStackTrace();
+                        }
+                    }
+                })); 
             }
 
         } catch (Exception e) {
                 e.printStackTrace();
-        } finally {
-            if (client != null) {
-                try {
-                    client.disconnect();
-                    client.close();
-                } catch (MqttException e) {
-                    System.out.println("Error while disconnecting MQTT client.");
-                    e.printStackTrace();
-                }
-            }
         }
     }
     private static ImageIcon toggleLightBulb(String message) {
