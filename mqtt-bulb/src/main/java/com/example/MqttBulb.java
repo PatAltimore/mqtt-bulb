@@ -1,6 +1,7 @@
 package com.example;
 
 import org.eclipse.paho.client.mqttv3.MqttClient;
+import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.IMqttClient;
 import javax.swing.*;
 import java.awt.*;
@@ -17,8 +18,10 @@ public class MqttBulb {
 
     public static void main(String[] args) {
 
+        IMqttClient client = null;
+        
         try {
-            IMqttClient client = new MqttClient(BROKER_ENDPOINT, CLIENT_ID);
+            client = new MqttClient(BROKER_ENDPOINT, CLIENT_ID);
 
             // Connect to the MQTT broker
             client.connect();
@@ -74,9 +77,18 @@ public class MqttBulb {
 
         } catch (Exception e) {
                 e.printStackTrace();
+        } finally {
+            if (client != null) {
+                try {
+                    client.disconnect();
+                    client.close();
+                } catch (MqttException e) {
+                    System.out.println("Error while disconnecting MQTT client.");
+                    e.printStackTrace();
+                }
+            }
         }
     }
-
     private static ImageIcon toggleLightBulb(String message) {
         if (message.equals("toggle")) {
             isLit = !isLit;
